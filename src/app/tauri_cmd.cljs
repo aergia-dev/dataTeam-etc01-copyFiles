@@ -10,14 +10,21 @@
         (.then #(prn "return of " name ": " %))
         (.catch #(prn "catch - exec of " name ": " %)))))
 
-(defn call-fn2 [name param]
-  (go
-    (let [invoke js/window.__TAURI__.invoke]
-      (try (<p! (invoke name (clj->js param)))
-           (catch js/Error err (js/console.log (ex-cause err)))))))
+;; (defn call-fn2 [name param]
+;;   (go
+;;     (let [invoke js/window.__TAURI__.invoke]
+;;       (try (<p! (invoke name (clj->js param)))
+;;            (catch js/Error err (js/console.log (ex-cause err)))))))
 
 
 
 ;; (cmd/call-fn "custom-command" {:value "dkdkdkdkdk"})
 
-(defn )
+;; (defn call-fn2 [name param]
+;;   (go
+;;     (let [invoke js/window.__TAURI__.invoke
+;;           cmd "net use z: \\\\192.168.1.5\\PublicData\\VueronDataSet\\3_other_data"]
+;;       (let [r (try (<p! (invoke ("custom_command" (clj->js {"vlaue" "aaaaaaa"}))))
+;;                    (catch js/Error err (js/console.log (ex-cause err))))]
+;;         (prn "#### " r)))))
+

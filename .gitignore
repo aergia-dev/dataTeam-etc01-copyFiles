@@ -9,3 +9,7 @@ src-tauri/target
 
 .#.gitignore
 .#*.*
+.clj-kondo/
+*.bak
+yarn-error.log
+.yarnclean

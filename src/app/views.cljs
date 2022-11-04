@@ -20,7 +20,7 @@
                             ;;   (-> (invoke "custom_command" (clj->js {"value" "cussss"}))
                             ;;       (.then #(prn "return : " %))
                             ;;       (.catch #(prn "exec cmd err: " %))))
-                            (cmd/call-fn2 "custom_command" {"value" "scuees"})
+                            (cmd/call-fn "custom_command" {"value" "scuees"})
                             (-> f
                                 (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
                                 (.catch #(js/alert "file open error: " %)))))} "open"]]
