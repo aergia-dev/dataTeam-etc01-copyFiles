@@ -6,3 +6,9 @@
  :files
  (fn [db _]
    (get db :files)))
+
+
+(reg-sub
+ :data
+ (fn [db _]
+   (:data db)))

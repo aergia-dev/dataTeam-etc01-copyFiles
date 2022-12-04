@@ -14,3 +14,12 @@
  (fn [db files]
    (assoc db :files files)))
 
+(reg-event-db
+ :test
+ (fn [db _]
+   (debug ":test " _)))
+
+(reg-event-db
+ :add-data
+ (fn [db [_ [k v]]]
+   (assoc-in db [:data k] v)))
