@@ -9,3 +9,7 @@ src-tauri/target
 
 .#.gitignore
 .#*.*
+
+.calva/
+.clj-kondo/
+.lsp/
