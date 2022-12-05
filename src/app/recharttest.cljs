@@ -64,8 +64,7 @@
                                        :backgroundColor "#F08080"}
                                       {:data [20]
                                        :label "empty"
-                                       :backgroundColor "#90EE90"}]
-                           }
+                                       :backgroundColor "#90EE90"}]}
                     :options {:indexAxis "y"
                               :scales {:x {:stacked true}
                                        :y {:stacked true}}}}]
@@ -79,6 +78,5 @@
     :display-name "chart-omponent"
     :reagent-render (fn []
                       [:div {:key "char"}
-                       [:canvas {:id "chart1" :width 200 :height 50}]
-                       ])}))
+                       [:canvas {:id "chart1" :width 200 :height 50}]])}))
 

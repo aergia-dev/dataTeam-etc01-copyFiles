@@ -12,3 +12,8 @@
  :data
  (fn [db _]
    (:data db)))
+
+(reg-sub
+ :validation
+ (fn [db _]
+   (:validation db)))
