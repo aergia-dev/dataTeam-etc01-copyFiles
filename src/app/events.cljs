@@ -15,11 +15,6 @@
    (assoc db :files files)))
 
 (reg-event-db
- :test
- (fn [db _]
-   (debug ":test " _)))
-
-(reg-event-db
  :add-data
  (fn [db [_ [k v]]]
    (assoc-in db [:data k] v)))
@@ -27,19 +22,41 @@
 (reg-event-db
  :clear-data
  (fn [db _]
-   (assoc-in db [:data] nil)))
+   {}))
 
 
 (reg-event-db
  :validation
- (fn [db [k v]]
+ (fn [db [_ v]]
    (assoc db :validation v)))
 
 (reg-event-db
  :modify-frame-num
  (fn [db [_ k target v]]
-   (let [ori (get-in db [:data k])]
-     (assoc-in db [:data k] (merge ori {target v})))))
+   (let [ori (get-in db [:data k])
+         start (if (= target :start)
+                 v
+                 (get-in db [:data k :start]))
+         end (if (= target :end)
+               v
+               (get-in db [:data k :end]))
+         filtered-data (filter (fn [e]
+                                 (let [frame-num (:frame e)]
+                                   (and (<= start frame-num)
+                                        (>= end frame-num)))) (:box ori))
+         box-cnt (reduce (fn [acc ele] (+ acc (count (re-seq #"b" (:data ele))))) 0 filtered-data)]
+     (assoc-in db [:data k] (merge ori {target v} {:box-cnt box-cnt})))))
+
+(reg-event-db
+ :busy
+ (fn [db v]
+   (debug v)
+   db))
+
+(reg-event-db
+ :show-result
+ (fn [db v]
+   (assoc db :show-result v)))
 
 ;; (reg-event-db
 ;;  :modify-frame-num

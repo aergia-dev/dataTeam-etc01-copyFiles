@@ -5,7 +5,7 @@
     "beforeDevCommand": "",
     "devPath": "../dist",
     "distDir": "../dist",
-      "withGlobalTauri": true
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "scheduler",
@@ -30,7 +30,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-        "identifier": "scheduler",
+      "identifier": "scheduler",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -54,10 +54,22 @@
     "updater": {
       "active": false
     },
-      "allowlist": {
-          "all": true
+    "allowlist": {
+      "all": true,
+      "dialog": {
+        "open": true,
+        "save": true
       },
-
+      "fs": {
+        "all": true,
+        "scope": [
+          "$HOME/*",
+          "$APP/*"
+        ],
+        "readFile": true,
+        "writeFile": true
+      }
+    },
     "windows": [
       {
         "fullscreen": false,

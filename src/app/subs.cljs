@@ -17,3 +17,13 @@
  :validation
  (fn [db _]
    (:validation db)))
+
+(reg-sub
+ :busy
+ (fn [db _]
+   (:busy db)))
+
+(reg-sub
+ :show-result
+ (fn [db _]
+   (:show-result db)))
