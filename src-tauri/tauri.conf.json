@@ -73,10 +73,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
-        "resizable": true,
-        "title": "scheduler",
-        "width": 800
+        "height": 1836,
+        "resizable": false,
+        "title": "data team - etc01",
+        "width": 1024
       }
     ]
   }

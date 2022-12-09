@@ -3,6 +3,7 @@
             [re-frame.core :refer [subscribe dispatch dispatch-sync]]
             [app.subs]
             [app.views-merge :refer [view-merge]]
+            [app.views-split :refer [view-split]]
             [app.toaster :as toaster]
             ["react-toastify" :refer [ToastContainer]]
             [app.tauri-cmd :as cmd]
@@ -16,7 +17,7 @@
 
 
 (defn view-open-file []
-  [:div {:class "flex v-screen flex-col space-y-4"}
+  [:div {:class "flex v-screen flex-col space-y-4 justify-center"}
    [:div {:class "flex grow justify-center"}
     [:button {:class " bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-full w-96"
               :on-click (fn [e]
@@ -39,36 +40,47 @@
         [:span {:class "h-1 w-full bg-blue-200"}]]))])
 
 
-
-(defn analyze-split []
-  [:div {:id "analyze-split"}
-   "split"])
-   ;; [default-input-box "" ""]])
-
 (defn analyze-select [files]
-  (debug (-> files second count))
-  (debug files)
+  ;; (debug (-> files second count))
+  ;; (debug files)
   (if (= 1 (-> files second count))
-    (analyze-split)
+    (view-split files
     (view-merge files)))
-    ;; (analyze-merge files)))
+
+(def imgs ["m_1.jpg"
+           "m_2.jpg"
+           "m_3.jpg"
+           "m_4.jpg"
+           "m_5.jpg"
+           "m_6.jpg"
+           "m_7.jpg"])
+
+(defn get-img-path []
+  (let [idx (-> (.random js/Math)
+                (* 10)
+                (mod (count imgs))
+                (js/Math.floor))]
+    (get imgs idx)))
+
 
 (defn default-view []
-  [:div {:class "flex flex-col items-center"}
-   [:> ToastContainer (clj->js {:position "bottom-right"
-                                :autoClose 2000
-                                :hideProgressBar false
-                                :newestOnTop false
-                                :closeOnClick true
-                                :rtl false
-                                :pauseOnFocusLoss false
-                                :draggable true
-                                :pauseOnHover true})]
-   [view-open-file]
-   (let [files @(subscribe [:files])]
-     (when (seq files)
-       [:div {:class "flex grow"
-              :id "analyze-split"}
-        (analyze-select files)]))
-  ;;  [c/test-a]
-   ])
+  [:div
+   [:div {:class "container  w-screen min-h-screen z-0 fixed "}
+    [:img {:class "object-cover blur-[10px]"
+           :src (str "/img/" (get-img-path))}]]
+   [:div {:class "flex w-screen flex-col items-center justify-center z-20 fixed"}
+    [:> ToastContainer (clj->js {:position "bottom-right"
+                                 :autoClose 2000
+                                 :hideProgressBar false
+                                 :newestOnTop false
+                                 :closeOnClick true
+                                 :rtl false
+                                 :pauseOnFocusLoss false
+                                 :draggable true
+                                 :pauseOnHover true})]
+    [view-open-file]
+    (let [files @(subscribe [:files])]
+      (when (seq files)
+        [:div {:class "flex grow justify-center"
+               :id    "analyze-split"}
+         (analyze-select files)]))]])

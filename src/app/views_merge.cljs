@@ -1,11 +1,11 @@
 (ns app.views-merge
   (:require [reagent.core :as r]
-            [re-frame.core :refer [subscribe dispatch dispatch-sync]]
+            [re-frame.core :refer [subscribe dispatch]]
             ["@tauri-apps/api/dialog" :as dialog]
             ["@tauri-apps/api/fs" :as fs]
             [app.common-element :refer [split-input-box]]
             [app.toaster :as toaster]
-            [taoensso.timbre :refer [debug info error fatal]]))
+            [taoensso.timbre :refer [debug]]))
 
 (defn sort-result [result]
   (sort-by #(-> % second :start) < result))
@@ -38,10 +38,7 @@
 
 (defn count-total-box [item]
   (let [filtered-box (filter-box-range (:start item) (:end item) (:box item))]
-    (debug (count (:box item)))
-    (debug "after "(count filtered-box))
     (count filtered-box)))
-
 
 (defn extract-last-frame-num [content]
   (->> content
@@ -78,16 +75,16 @@
        (.catch #(debug "analyze file exception " (ex-cause %)))))
 
 (defn analyze-on-click [file-list]
-  (debug "file-list " file-list)
   (let [items (flatten (map frame-from-filename file-list))]
-    (debug "### " items)
+    (dispatch [:item-cnt (count items)])
     (doall (map analyze-file (range (count items)) items))))
 
 (defn analyze [file-list]
-  [:div {:class "flex justify-center grow"}
-   [:button {:class "bg-blue-500 text-white rounded-full w-96 hover:bg-blue-700"
-             :on-click #(analyze-on-click file-list)}
-    "analyze for merge"]])
+  (when (seq file-list)
+    [:div {:class "flex justify-center grow"}
+     [:button {:class "bg-blue-500 text-white rounded-full w-96 hover:bg-blue-700"
+               :on-click #(analyze-on-click file-list)}
+      "analyze for merge"]]))
 
 
 (defn analyze-ele-view [k {:keys [filename alias start end total-box-cnt]}]
@@ -158,7 +155,6 @@
 (defn make-write-data [ori-data]
   (let [all-data (map prep-write-data ori-data)
         last-idx (-> ori-data first second :last-idx)]
-    (debug "all data" all-data)
     (loop [cur-frame 2
            result []
            data all-data]
@@ -209,14 +205,19 @@
 
 
 (defn merge-btn-view []
-  (let [validation-msg @(subscribe [:validation])]
-    (if (= "valid" validation-msg)
-      [:div {:class "bg-white/100 mt-6 items-center grow mt-6"}
-       [:div {:class "bg-blue-500/50 text-white text-center grow"} validation-msg]
-       [:button {:class "bg-blue-500 hover:bg-blue-700 text-white rounded-full w-96 mt-6 font-bold"
-                 :on-click #(let [data @(subscribe [:data])]
-                              (merge-on-click data))} "merge"]]
-      [:div {:class "bg-red-500/50 text-white mt-6 text-center"} validation-msg])))
+  (let [validation-msg @(subscribe [:validation])
+        item-cnt @(subscribe [:item-cnt])
+        data-cnt @(subscribe [:data-cnt])]
+    (when (= item-cnt data-cnt)
+      (if (= "valid" validation-msg)
+        [:div {:class " mt-6 items-center grow mt-6"}
+         [:div {:class
+                "bg-blue-500/50 text-white text-center grow"} validation-msg]
+         [:button {:class "bg-blue-500 hover:bg-blue-700 text-white text-center rounded-full w-96 mt-6 font-bold"
+                   :on-click #(let [data @(subscribe [:data])]
+                                (merge-on-click data))} "merge"]]
+        [:div {:class "bg-red-500/50 text-white mt-6 text-center"} validation-msg]))))
+
 
 (defn show-result []
   (let [result @(subscribe [:show-result])]
@@ -224,13 +225,13 @@
       [:div {:class "bg-white/100 mt-6 items-center grow mt-6"}
        [:div {:class "bg-blue-500/50 text-white text-center grow"} result]])))
 
-
 (defn view-merge [files]
-  [:div {:class "mt-6 mb-6"}
+  [:div {:class "mt-6 mb-6 justify-center"}
    [analyze (second files)]
    [analyze-result]
    [analyze-graph]
    [validation]
    [merge-btn-view]
    [processing-spin]
-   [show-result]])
+   [show-result]
+   ])

@@ -58,10 +58,7 @@
  (fn [db v]
    (assoc db :show-result v)))
 
-;; (reg-event-db
-;;  :modify-frame-num
-;;  (fn [db [_ k start-v end-v]]
-;;    (debug "k " k)
-;;    (debug start-v end-v)
-;;    (let [ori (get-in db [:data k])]
-;;      (assoc-in db [:data k] (merge ori {:start start-v :end end-v})))))
+(reg-event-db
+  :item-cnt
+  (fn [db [k v]]
+    (assoc-in db [:status k] v)))
