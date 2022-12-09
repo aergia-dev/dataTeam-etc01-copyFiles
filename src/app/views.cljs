@@ -44,7 +44,7 @@
   ;; (debug (-> files second count))
   ;; (debug files)
   (if (= 1 (-> files second count))
-    (view-split files
+    (view-split files)
     (view-merge files)))
 
 (def imgs ["m_1.jpg"
