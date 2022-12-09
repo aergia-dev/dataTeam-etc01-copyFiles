@@ -28,20 +28,18 @@
   (let [data (re-seq #"(b.+\r?\n){0,}f(\d+)\r?\n" content)]
     (map (fn [[whole _ frame]]
            {:frame (js/parseInt frame)
-            ;; :box box
             :frame-box-cnt (count-box whole)
             :data whole}) data)))
-
-         ;; (filter (fn [m] (and (< (:start info) (:frame m))
-                              ;; (> (:end info) (:frame m))))))))
 
 (defn filter-box-range [start end frame-data]
   (filter (fn [f]
             (and (<= start (:frame f))
-                 (>= end  (:frame f))) frame-data)))
+                 (>= end  (:frame f)))) frame-data))
 
 (defn count-total-box [item]
   (let [filtered-box (filter-box-range (:start item) (:end item) (:box item))]
+    (debug (count (:box item)))
+    (debug "after "(count filtered-box))
     (count filtered-box)))
 
 
@@ -56,7 +54,7 @@
 
 (defn count-frame-has-box [start end frame-data]
   (let [filtered-frame (filter-box-range start end frame-data)]
-    (count (filter #(comp not nil? (:frame %)) filtered-frame))))
+    (count (filter #(not (zero? (:frame-box-cnt %))) filtered-frame))))
 
 (defn analyze-file [k item]
   (debug item)
@@ -66,7 +64,7 @@
                       last-idx (extract-last-frame-num content)
                       ;;need to filter start/end frame num
                       total-box-cnt (reduce (fn [acc ele]
-                                              (+ acc (js/parseInt (:box-cnt ele)))) 0 frame-data)
+                                              (+ acc (js/parseInt (:frame-box-cnt ele)))) 0 frame-data)
                       ;;need to filter start/end frame num
                       frame-cnt-has-box (count-frame-has-box (:start item) (:end item) frame-data)
                       box-cnt-per-frame (/ total-box-cnt frame-cnt-has-box)]
@@ -74,6 +72,7 @@
                   (debug "frame " frame-cnt-has-box)
                   (dispatch [:add-data [k (merge item {:frame-data frame-data
                                                        :total-box-cnt total-box-cnt
+                                                       :frame-cnt-has-box frame-cnt-has-box
                                                        :box-cnt-per-frame box-cnt-per-frame
                                                        :last-idx last-idx})]]))))
        (.catch #(debug "analyze file exception " (ex-cause %)))))
@@ -146,10 +145,10 @@
   (let [data (second item)
         start (data :start)
         end (data :end)]
-    (map (fn [frame-info]
-           (when (and (<= start (:frame frame-info))
-                      (>= end (:frame frame-info)))
-             (get-in frame-info [:data]))) (data :box))))
+    (->> (:frame-data data)
+        (filter (fn [frame] (and (<= start (:frame frame))
+                                 (>= end (:frame frame)))))
+        (map :data))))
 
 (defn make-empty-frame-str [start end]
   (let [s (apply str (reduce (fn [acc idx]
@@ -159,6 +158,7 @@
 (defn make-write-data [ori-data]
   (let [all-data (map prep-write-data ori-data)
         last-idx (-> ori-data first second :last-idx)]
+    (debug "all data" all-data)
     (loop [cur-frame 2
            result []
            data all-data]
@@ -198,10 +198,9 @@
   (let [result @(subscribe [:data])]
     (validation-check (sort-result result))))
 
-(defn merge-on-click []
+(defn merge-on-click [data]
   (test-spinning)
   (let [f (.save dialog)
-        data (-> @(subscribe [:data]) sort-result)
         d (apply str (make-write-data data))]
     (-> f
         (.then (fn [path]
@@ -215,7 +214,8 @@
       [:div {:class "bg-white/100 mt-6 items-center grow mt-6"}
        [:div {:class "bg-blue-500/50 text-white text-center grow"} validation-msg]
        [:button {:class "bg-blue-500 hover:bg-blue-700 text-white rounded-full w-96 mt-6 font-bold"
-                 :on-click #(merge-on-click)} "merge"]]
+                 :on-click #(let [data @(subscribe [:data])]
+                              (merge-on-click data))} "merge"]]
       [:div {:class "bg-red-500/50 text-white mt-6 text-center"} validation-msg])))
 
 (defn show-result []
