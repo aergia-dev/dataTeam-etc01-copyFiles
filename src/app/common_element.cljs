@@ -37,3 +37,12 @@
 ;;              :key v}
 ;;        [:div {:class "mb-3 w-32 ml-2 mr-2 "}
 ;;         [:input (merge default-prop prop)]]])))
+
+
+(defn spinner [color]
+  (let [c (if (seq color)
+            color
+            "#000000")]
+  [:div {:style {:color c} ;;"#79bbb5"}
+         :class "la-ball-spin-fade-rotating la-2x"}
+   [:div][:div][:div][:div][:div][:div][:div][:div]]))
