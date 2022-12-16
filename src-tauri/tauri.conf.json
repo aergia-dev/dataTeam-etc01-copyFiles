@@ -8,8 +8,8 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "scheduler",
-    "version": "0.1.0"
+    "productName": "data Team - etc01",
+    "version": "0.0.1"
   },
   "tauri": {
     "allowlist": {
@@ -30,7 +30,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "scheduler",
+      "identifier": "dataTeam",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -73,9 +73,9 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 1836,
-        "resizable": false,
-        "title": "data team - etc01",
+        "height": 800,
+        "resizable": true,
+        "title": "data team - etc01 - v0.0.1",
         "width": 1024
       }
     ]

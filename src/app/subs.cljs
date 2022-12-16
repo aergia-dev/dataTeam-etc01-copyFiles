@@ -29,11 +29,16 @@
    (:show-result db)))
 
 (reg-sub
-  :item-cnt
-  (fn [db _]
-    (get-in db [:status :item-cnt])))
+ :item-cnt
+ (fn [db _]
+   (get-in db [:status :item-cnt])))
 
 (reg-sub
-  :data-cnt
-  (fn [db _]
-    (count (:data db))))
+ :data-cnt
+ (fn [db _]
+   (count (:data db))))
+
+(reg-sub
+ :color
+ (fn [db _]
+   (:color db)))

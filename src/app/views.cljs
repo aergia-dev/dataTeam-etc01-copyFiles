@@ -4,6 +4,7 @@
             [app.subs]
             [app.views-merge :refer [view-merge]]
             [app.views-split :refer [view-split]]
+            [app.common-element :refer [spinner]]
             [app.toaster :as toaster]
             ["react-toastify" :refer [ToastContainer]]
             [app.tauri-cmd :as cmd]
@@ -19,7 +20,7 @@
 (defn view-open-file []
   [:div {:class "flex v-screen flex-col space-y-4 justify-center"}
    [:div {:class "flex grow justify-center"}
-    [:button {:class " bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-full w-96"
+    [:button {:class " bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-96"
               :on-click (fn [e]
                           (let [f (.open dialog (clj->js {:multiple true}))]
                             (dispatch [:clear-data nil])
@@ -40,12 +41,10 @@
         [:span {:class "h-1 w-full bg-blue-200"}]]))])
 
 
-(defn analyze-select [files]
-  ;; (debug (-> files second count))
-  ;; (debug files)
-  (if (= 1 (-> files second count))
-    (view-split files)
-    (view-merge files)))
+(defn analyze-select [file-cnt]
+  (if (= 1 file-cnt)
+    [view-split]
+    [view-merge]))
 
 (def imgs ["m_1.jpg"
            "m_2.jpg"
@@ -68,6 +67,7 @@
    [:div {:class "container  w-screen min-h-screen z-0 fixed "}
     [:img {:class "object-cover blur-[10px]"
            :src (str "/img/" (get-img-path))}]]
+
    [:div {:class "flex w-screen flex-col items-center justify-center z-20 fixed"}
     [:> ToastContainer (clj->js {:position "bottom-right"
                                  :autoClose 2000
@@ -83,4 +83,7 @@
       (when (seq files)
         [:div {:class "flex grow justify-center"
                :id    "analyze-split"}
-         (analyze-select files)]))]])
+         (analyze-select (-> files second count))]))]
+   [:div {:class "flex h-screen w-screen items-center justify-center fixed z-999"}
+    (let [enable? @(subscribe [:busy])]
+      (spinner "" enable?))]])
