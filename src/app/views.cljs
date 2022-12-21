@@ -4,6 +4,7 @@
             [app.subs]
             [app.views-merge :refer [view-merge]]
             [app.views-split :refer [view-split]]
+            [app.views-remove :refer [view-remove]]
             [app.common-element :refer [spinner]]
             [app.toaster :as toaster]
             ["react-toastify" :refer [ToastContainer]]
@@ -19,14 +20,34 @@
 
 (defn view-open-file []
   [:div {:class "flex v-screen flex-col space-y-4 justify-center"}
-   [:div {:class "flex grow justify-center"}
-    [:button {:class " bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-96"
-              :on-click (fn [e]
-                          (let [f (.open dialog (clj->js {:multiple true}))]
-                            (dispatch [:clear-data nil])
-                            (-> f
-                                (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
-                                (.catch #(js/alert "file open error: " %)))))} "open"]]
+   [:div {:class "flex flex-row w-96 justify-between"}
+    [:div {:class "flex-initial mt-10"}
+     [:button {:class " bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-20"
+               :on-click (fn [e]
+                           (let [f (.open dialog (clj->js {:multiple true}))]
+                             (dispatch [:clear-data nil])
+                             (-> f
+                                 (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
+                                 (.catch #(js/alert "file open error: " %)))))} "merge"]]
+    [:div {:class "flex "}
+     [:button {:class " bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-20"
+               :on-click (fn [e]
+                           (let [f (.open dialog (clj->js {:multiple true}))]
+                             (dispatch [:clear-data nil])
+                             (-> f
+                                 (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
+                                 (.catch #(js/alert "file open error: " %)))))} "split"]]
+
+    ;; [:div {:class "flex "}
+    ;;  [:button {:class " bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-20"
+    ;;            :on-click (fn [e]
+    ;;                        (let [f (.open dialog (clj->js {:multiple true}))]
+    ;;                          (dispatch [:clear-data nil])
+    ;;                          (-> f
+    ;;                              (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
+    ;;                              (.catch #(js/alert "file open error: " %)))))} "remove"]]
+    ]
+
 
    [:div {:class "flex y-10"}]
    (let [files @(subscribe [:files])]
@@ -41,33 +62,15 @@
         [:span {:class "h-1 w-full bg-blue-200"}]]))])
 
 
-(defn analyze-select [file-cnt]
-  (if (= 1 file-cnt)
-    [view-split]
-    [view-merge]))
-
-(def imgs ["m_1.jpg"
-           "m_2.jpg"
-           "m_3.jpg"
-           "m_4.jpg"
-           "m_5.jpg"
-           "m_6.jpg"
-           "m_7.jpg"])
-
-(defn get-img-path []
-  (let [idx (-> (.random js/Math)
-                (* 10)
-                (mod (count imgs))
-                (js/Math.floor))]
-    (get imgs idx)))
-
+(defn analyze-select []
+  (let [mode @(subscribe [:mode])]
+    (condp = mode
+      :split [view-split]
+      :merge [view-merge]
+      :remove [view-remove])))
 
 (defn default-view []
   [:div
-   [:div {:class "container  w-screen min-h-screen z-0 fixed "}
-    [:img {:class "object-cover blur-[10px]"
-           :src (str "/img/" (get-img-path))}]]
-
    [:div {:class "flex w-screen flex-col items-center justify-center z-20 fixed"}
     [:> ToastContainer (clj->js {:position "bottom-right"
                                  :autoClose 2000
@@ -78,12 +81,12 @@
                                  :pauseOnFocusLoss false
                                  :draggable true
                                  :pauseOnHover true})]
-    [view-open-file]
+    (view-open-file)
     (let [files @(subscribe [:files])]
       (when (seq files)
         [:div {:class "flex grow justify-center"
                :id    "analyze-split"}
-         (analyze-select (-> files second count))]))]
-   [:div {:class "flex h-screen w-screen items-center justify-center fixed z-999"}
-    (let [enable? @(subscribe [:busy])]
-      (spinner "" enable?))]])
+         [analyze-select]]))
+    [:div {:class "flex h-screen w-screen items-center justify-center fixed z-999"}
+     (let [enable? @(subscribe [:busy])]
+       (spinner "" enable?))]]])
