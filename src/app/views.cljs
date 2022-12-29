@@ -46,28 +46,8 @@
     [view-split]
     [view-merge]))
 
-(def imgs ["m_1.jpg"
-           "m_2.jpg"
-           "m_3.jpg"
-           "m_4.jpg"
-           "m_5.jpg"
-           "m_6.jpg"
-           "m_7.jpg"])
-
-(defn get-img-path []
-  (let [idx (-> (.random js/Math)
-                (* 10)
-                (mod (count imgs))
-                (js/Math.floor))]
-    (get imgs idx)))
-
-
 (defn default-view []
   [:div
-   [:div {:class "container  w-screen min-h-screen z-0 fixed "}
-    [:img {:class "object-cover blur-[10px]"
-           :src (str "/img/" (get-img-path))}]]
-
    [:div {:class "flex w-screen flex-col items-center justify-center z-20 fixed"}
     [:> ToastContainer (clj->js {:position "bottom-right"
                                  :autoClose 2000
