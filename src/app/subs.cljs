@@ -42,3 +42,8 @@
  :color
  (fn [db _]
    (:color db)))
+
+(reg-sub 
+ :split-user
+ (fn [db _]
+   (:split-user db)))

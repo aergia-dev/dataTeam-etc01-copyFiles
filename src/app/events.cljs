@@ -123,3 +123,26 @@
                          :hover " hover:bg-blue-400 "
                          :all " bg-blue-200 hover:bg-blue-400 "})]
      (assoc db  k v :color color))))
+
+(reg-event-db 
+ :base-file
+ (fn [db [_ v]]
+   (assoc db :base-file v)))
+
+(reg-event-db 
+ :add-split-user
+ (fn [db [k v]]
+   (let [idx (if (nil? (:split-user-cnt db))
+             0
+             (:split-user-cnt db))]
+(prn "idx " idx)
+(prn "cnt " (:split-user-cnt db))
+   (-> db
+       (update :split-user-cnt (fnil inc 0))
+       (update :split-user assoc idx {:user-name nil :frame [{:start 0 :end 0}]})))))
+
+(reg-event-db
+ :add-split-user-frame
+ (fn [db [k v]]
+   (let [frame (get-in db [:split-user v :frame])]
+   (assoc-in db [:split-user v :frame] (conj frame {:start 0 :end 0})))))

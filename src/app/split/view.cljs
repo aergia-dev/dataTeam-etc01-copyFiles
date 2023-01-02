@@ -1,5 +1,5 @@
-(ns app.views-split
-  (:require [reagent.core :as r]
+(ns app.split.view
+   (:require [reagent.core :as r]
             [re-frame.core :refer [subscribe dispatch]]
             ["@tauri-apps/api/dialog" :as dialog]
             ["@tauri-apps/api/fs" :as fs]
@@ -10,8 +10,6 @@
 (defn analyze []
   (let [file (-> @(subscribe [:files]) second)
         color (-> @(subscribe [:color]))]
-
-    (debug "###" color)
     ;; (debug "file " file)
     ;; (debug (seq file))
     (when (seq file)
@@ -42,11 +40,24 @@
          [:th {:class color2} total-box-cnt]
          [:th {:class color2} frame-cnt-has-box]]]])))
 
-(defn analyze-graph [])
+(defn analyze-graph []
+    (let [{:keys [frame-data total-box-cnt frame-cnt-has-box first-idx last-idx] :as data} (-> @(subscribe [:data])
+                                                                                               )]
+      (prn "####")))
 
 (defn validation [])
 
-(defn split-btn-view [])
+(defn split-config []
+;;   (let [data (-> @(subscribe [:data]))]
+    ;; (when (seq data)
+  [:div
+   [:button {:class "text-pink-500 background-transparent font-bold uppercase px-3 py-1 text-xs outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+             :type= "button"}
+    [:i {:class "fas fa-heart"}]]])
+
+(defn split-btn-view []
+  (let [data (-> @(subscribe [:data]))]
+    (prn "## " data)))
 
 (defn show-result [])
 
@@ -59,5 +70,6 @@
    [analyze-result]
    [analyze-graph]
    [validation]
+   [split-config]
    [split-btn-view]
    [show-result]])
