@@ -42,3 +42,8 @@
  :color
  (fn [db _]
    (:color db)))
+
+(reg-sub
+ :base-file
+ (fn [db _]
+   (:base-file db)))

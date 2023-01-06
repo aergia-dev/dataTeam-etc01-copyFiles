@@ -1,8 +1,9 @@
 (ns app.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [app.db :refer [default-db]]
+            [app.common.utils :as u]
             [app.calc-split :refer [analyze-split]]
-            [app.calc-merge :refer [analyze-merge action-merge]]
+            [app.merge.calc :refer [analyze-merge action-merge]]
             [taoensso.timbre :refer [debug]]))
 
 (reg-event-db
@@ -13,8 +14,14 @@
 
 (reg-event-db
  :files
- (fn [db files]
-   (assoc db :files files)))
+ (fn [db [k v]]
+   (let [base-file (-> (filter #(-> % u/parsing-filename nil?) v)
+                       first)]
+     (prn "####" base-file)
+     (prn "@@@@ " (map nil? (map u/parsing-filename v)))
+     (-> db
+         (assoc k v)
+         (assoc :base-file base-file)))))
 
 (reg-event-db
  :add-data
@@ -102,7 +109,7 @@
 (reg-event-db
  :action-merge-analyze
  (fn [db  _]
-   (analyze-merge (-> db :files second))
+   (analyze-merge (-> db :files) (-> db :base-file))
    db))
 
 (reg-event-db
@@ -123,3 +130,8 @@
                          :hover " hover:bg-blue-400 "
                          :all " bg-blue-200 hover:bg-blue-400 "})]
      (assoc db  k v :color color))))
+
+(reg-event-db
+ :base-file
+ (fn [db [k v]]
+   (assoc db k v)))
