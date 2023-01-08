@@ -1,18 +1,8 @@
 (ns app.merge.view
-<<<<<<< HEAD
-  (:require [reagent.core :as r]
-            [re-frame.core :refer [subscribe dispatch dispatch-sync]]
-            ["@tauri-apps/api/dialog" :as dialog]
-            ["@tauri-apps/api/fs" :as fs]
-            [app.merge.calc :as calc]
-            [app.common-element :refer [split-input-box spinner]]
-            [app.toaster :as toaster]
-            [app.calc-merge :refer [analyze-merge]]
-=======
-  (:require [re-frame.core :refer [subscribe dispatch]]
-            [app.common-element :refer [split-input-box]]
->>>>>>> origin/working
-            [taoensso.timbre :refer [debug]]))
+ (:require [re-frame.core :refer [subscribe dispatch]]
+           [app.common-element :refer [split-input-box]]
+           [app.merge.calc :as calc]
+           [taoensso.timbre :refer [debug]]))
 
 
 (defn sort-result [result]
@@ -28,16 +18,15 @@
         "analyze for merge"]])))
 
 
-<<<<<<< HEAD
-(defn analyze-ele-view [k {:keys [filename alias start end total-box-cnt]}]
-  [:div {:class "flex flex-row"
-         :key filename}
-   [:div  {:class "ml-2 mr-2 mt-3 items-center"}
-    alias]
-   [split-input-box (str k "-start") start]
-   [split-input-box (str k "-end") end]
-   [:div {:class "mt-3 items-center"} total-box-cnt]])
-=======
+;; (defn analyze-ele-view [k {:keys [filename alias start end total-box-cnt]}]
+;;   [:div {:class "flex flex-row"
+;;          :key filename}
+;;    [:div  {:class "ml-2 mr-2 mt-3 items-center"}
+;;     alias]
+;;    [split-input-box (str k "-start") start]
+;;    [split-input-box (str k "-end") end]
+;;    [:div {:class "mt-3 items-center"} total-box-cnt]])
+
 (defn analyze-ele-view [k {:keys [filename alias start end total-box-cnt box-cnt-per-frame base-file]}]
   [:tr {:class "text-center"
         :key (str filename "-" start)}
@@ -58,32 +47,18 @@
      [:td {:class "mt-3 items-center"} total-box-cnt]
      [:td (.floor js/Math total-box-cnt)]]))
 
->>>>>>> origin/working
 
 
 
 (defn analyze-result []
   (let [result @(subscribe [:data])]
-<<<<<<< HEAD
-    (when (seq result)
-      [:div {:class "flex flex-col mt-6"}
-       [:div {:class "flex flex-row grow items-center"}
-        [:div {:class "w-36 justify-center"} "alias"]
-        [:div {:class "w-36 items-center"} "start frame"]
-        [:div {:class "w-36"} "end frame"]
-        [:div {:class "w-36"} "total box"]]
-       (for [[k v] (sort-result result)]
-         [:div {:key k}
-          (analyze-ele-view k v)
-          [:span {:class "h-1 w-full bg-gray-300"}]])])))
-=======
         ;; 
         ;; others (dissoc result (-> keys base-file first))]
     ;; (prn (-> keys base-file))
     (when (seq result)
       (let [base-file (-> (filter (fn [[_ v]] (true? (:base-file? v))) result) first)
             others (dissoc result (-> base-file first))]
-        [:div {:class "flex flex-col mt-6"}
+      [:div {:class "flex flex-col mt-6"}
          [:table {:class "table-auto"}
           [:thead
            [:tr
@@ -96,18 +71,10 @@
            (analyze-base-file-view base-file)
            (for [[k v] (sort-result others)]
              (analyze-ele-view k v))]]]))))
->>>>>>> origin/working
 
 (defn analyze-graph []
   (let [result @(subscribe [:data])]))
 
-<<<<<<< HEAD
-
-(defn validation []
-  (let [data @(subscribe [:data])
-        validation-result (calc/validation-check (sort-result data))]
-    (dispatch [:validation validation-result])))
-=======
 (defn validation-overlap [item1 item2]
   (debug (:start item1)  "," (:end item1)  "," (:start item2) "," (:end item2))
   (< (:start item1) (:end item1) (:start item2) (:end item2)))
@@ -135,7 +102,6 @@
 (defn validation []
   (let [result @(subscribe [:data])]
     (validation-check (sort-result result))))
->>>>>>> origin/working
 
 
 (defn merge-btn-view []
@@ -159,11 +125,6 @@
       [:div {:class "bg-white/100 mt-6 items-center grow mt-6"}
        [:div {:class "bg-blue-500/50 text-white text-center grow"} result]])))
 
-<<<<<<< HEAD
-(defn view-merge []
-  (dispatch [:mode :merge])
-  [:div {:class "mt-6 mb-6 justify-center"}
-=======
 (defn basefile-check [e]
   (let [check-boxs (.getElementsByName js/document "basefile-checkbox")
         file-lst (.getElementsByName js/document "filelist")
@@ -213,14 +174,9 @@
   (dispatch [:mode :merge])
   [:div {:class "mt-6 mb-6 justify-center"}
    [file-lst]
->>>>>>> origin/working
    [analyze]
    [analyze-result]
    [analyze-graph]
    [validation]
    [merge-btn-view]
-<<<<<<< HEAD
    [show-result]])
-=======
-   [show-result]])
->>>>>>> origin/working

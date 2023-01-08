@@ -2,8 +2,8 @@
   (:require [re-frame.core :refer [subscribe dispatch dispatch-sync]]
             [app.subs]
             [app.common-element :refer [spinner]]
-            [app.merge.view :as merge-view]
-            [app.split.view :as split-view]
+            [app.merge.view :refer [view-merge]]
+            [app.split.view :refer [view-split]]
             ["react-toastify" :refer [ToastContainer]]
             ["@tauri-apps/api/dialog" :as dialog]
             [cljs.core.async :refer [go]]
@@ -28,47 +28,15 @@
 
 (defn view-open-file []
   [:div {:class "flex v-screen flex-col space-y-4 justify-center"}
-   [:div {:class "flex grow justify-center"}
-    [:button {:class " bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-96"
-              :on-click (fn [e]
+   [:button {:class "bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-20"
+             :on-click (fn [_]
                           (let [f (.open dialog (clj->js {:multiple true}))]
                             (dispatch [:clear-data nil])
                             (-> f
                                 (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
-                                (.catch #(js/alert "file open error: " %)))))} "open"]]
+                               (.catch #(js/alert "file open error: " %)))))}
+    "open"]])
 
-   [:div {:class "flex y-10"}]
-   (let [files @(subscribe [:files])]
-     (when (seq files)
-       [:div {:class "flex flex-col"}
-        [:span {:class "h-1 w-full bg-blue-200"}]
-        [:div {:class "flex-col"}
-         [:ul {:class "list-inside"}]
-         (for [file (second files)]
-           [:li {:key (str file)}
-            (str file)])]
-        [:span {:class "h-1 w-full bg-blue-200"}]]))])
-
-
-(defn analyze-select [file-cnt]
-  (if (= 1 file-cnt)
-    [view-split]
-    [view-merge]))
-
-(def imgs ["m_1.jpg"
-           "m_2.jpg"
-           "m_3.jpg"
-           "m_4.jpg"
-           "m_5.jpg"
-           "m_6.jpg"
-           "m_7.jpg"])
-
-(defn get-img-path []
-  (let [idx (-> (.random js/Math)
-                (* 10)
-                (mod (count imgs))
-                (js/Math.floor))]
-    (get imgs idx)))
 
 
 (defn default-view []
@@ -93,5 +61,5 @@
       (when (seq files)
         (debug "##" (count files))
         (if (= (count files) 1)
-          [split-view/view-split]
-          [merge-view/view-merge])))]])
+          [view-split]
+          [view-merge])))]])

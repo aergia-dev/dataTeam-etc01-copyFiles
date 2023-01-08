@@ -1,30 +1,15 @@
 (ns app.split.view
-<<<<<<< HEAD
-   (:require [reagent.core :as r]
-            [re-frame.core :refer [subscribe dispatch]]
-            ["@tauri-apps/api/dialog" :as dialog]
-            ["@tauri-apps/api/fs" :as fs]
-            [app.common-element :refer [split-input-box spinner input-box]]
-            [app.toaster :as toaster]
-            [taoensso.timbre :refer [debug]]))
-=======
-  (:require ;;[reagent.core :as r]
+ (:require ;;[reagent.core :as r]
    [re-frame.core :refer [subscribe dispatch]]
             ;; ["@tauri-apps/api/dialog" :as dialog]
             ;; ["@tauri-apps/api/fs" :as fs]
-            ;; [app.common-element :refer [split-input-box spinner]]
+            [app.common-element :refer [input-box]]
             ;; [app.toaster :as toaster]
    [taoensso.timbre :refer [debug]]))
->>>>>>> origin/working
 
 (defn analyze []
   (let [file (-> @(subscribe [:files]) second)
         color (-> @(subscribe [:color]))]
-<<<<<<< HEAD
-=======
-
-    (debug "###" color)
->>>>>>> origin/working
     ;; (debug "file " file)
     ;; (debug (seq file))
     (when (seq file)
@@ -55,7 +40,6 @@
          [:th {:class color2} total-box-cnt]
          [:th {:class color2} frame-cnt-has-box]]]])))
 
-<<<<<<< HEAD
 (defn analyze-graph []
     (let [{:keys [frame-data total-box-cnt frame-cnt-has-box first-idx last-idx] :as data} (-> @(subscribe [:data])
                                                                                                )]
@@ -74,18 +58,10 @@
 (defn split-btn-view []
   (let [data (-> @(subscribe [:data]))]
     (prn "## " data)))
-=======
-(defn analyze-graph [])
-
-(defn validation [])
-
-(defn split-btn-view [])
->>>>>>> origin/working
 
 (defn show-result [])
 
 
-<<<<<<< HEAD
 (defn add-user-on-click [] 
   (dispatch [:add-split-user]))
 
@@ -138,7 +114,6 @@
              :on-click add-user-on-click}
     [:i {:class "fas fa-plus-square"}]]])
 
-=======
 (defn file-lst []
   (let [files @(subscribe [:files])]
     (when (seq files)
@@ -166,14 +141,12 @@
 ;;           [:li {:key (str file)}
 ;;            (str file)])]
 ;;        [:span {:class "h-1 w-full bg-blue-200"}]])))
->>>>>>> origin/working
 
 (defn view-split []
   (dispatch [:mode :split])
   [:div {:class "mt-6 mb-6 justify-center"}
    [:div
     [:i {:class "fa-solid fa-fan text-[10rem] text-green-500 animate-spin"}]]
-<<<<<<< HEAD
    [analyze]
    [analyze-result]
    [split-input-view]
@@ -182,12 +155,3 @@
    [split-config]
    [split-btn-view]
    [show-result]])
-=======
-   [file-lst]
-   [analyze]
-   [analyze-result]
-   [analyze-graph]
-   [validation]
-   [split-btn-view]
-   [show-result]])
->>>>>>> origin/working

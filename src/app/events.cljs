@@ -131,11 +131,10 @@
                          :all " bg-blue-200 hover:bg-blue-400 "})]
      (assoc db  k v :color color))))
 
-<<<<<<< HEAD
-(reg-event-db 
- :base-file
- (fn [db [_ v]]
-   (assoc db :base-file v)))
+;; (reg-event-db 
+;;  :base-file
+;;  (fn [db [_ v]]
+;;    (assoc db :base-file v)))
 
 (reg-event-db 
  :add-split-user
@@ -168,9 +167,8 @@
   ;;  (prn "$$ "v)
   ;;  db))
    (assoc-in db [:split-user idx :frame frame-idx k] v)))
-=======
+
 (reg-event-db
  :base-file
  (fn [db [k v]]
    (assoc db k v)))
->>>>>>> origin/working

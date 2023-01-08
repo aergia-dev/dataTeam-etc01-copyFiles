@@ -43,14 +43,12 @@
  (fn [db _]
    (:color db)))
 
-<<<<<<< HEAD
 (reg-sub 
  :split-user
  (fn [db _]
    (:split-user db)))
-=======
+
 (reg-sub
  :base-file
  (fn [db _]
    (:base-file db)))
->>>>>>> origin/working
