@@ -1,19 +1,13 @@
 (ns app.views
-  (:require [reagent.core :as r]
-            [re-frame.core :refer [subscribe dispatch dispatch-sync]]
+  (:require [re-frame.core :refer [subscribe dispatch dispatch-sync]]
             [app.subs]
-            [app.merge.view :refer [view-merge]]
-            [app.split.view :refer [view-split]]
-            [app.common-element :refer [spinner input-box]]
-            [app.toaster :as toaster]
+            [app.common-element :refer [spinner]]
+            [app.merge.view :as merge-view]
+            [app.split.view :as split-view]
             ["react-toastify" :refer [ToastContainer]]
-            [app.tauri-cmd :as cmd]
             ["@tauri-apps/api/dialog" :as dialog]
-            ["@tauri-apps/api/tauri" :refer [invoke]]
-            ["@tauri-apps/api/fs" :as fs]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
-            [app.recharttest :as c]
             [taoensso.timbre :refer [debug info error fatal]]))
 
 
@@ -43,29 +37,39 @@
                                 (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
                                 (.catch #(js/alert "file open error: " %)))))} "open"]]
 
+   [:div {:class "flex y-10"}]
    (let [files @(subscribe [:files])]
      (when (seq files)
-   [:div {:class "flex justify-center"}
-    [:div
-     (for [file (second files)]
-       [:div {:class "form-check"
-              :key (str file)}
-        [:input {:class "form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
-                 :type "checkbox"
-                 :value ""
-                 :id (str file)
-                 :name "basefile-check"
-                 :on-change #(do (base-file-checkbox-cont file)
-                                 (dispatch [:base-file file]))}]
-        [:label {:class "form-check-label inline-block text-gray-800"
-                 :name "filenames"
-                 :for (str file)}
-         (str file)]])]]))])
+       [:div {:class "flex flex-col"}
+        [:span {:class "h-1 w-full bg-blue-200"}]
+        [:div {:class "flex-col"}
+         [:ul {:class "list-inside"}]
+         (for [file (second files)]
+           [:li {:key (str file)}
+            (str file)])]
+        [:span {:class "h-1 w-full bg-blue-200"}]]))])
+
 
 (defn analyze-select [file-cnt]
   (if (= 1 file-cnt)
     [view-split]
     [view-merge]))
+
+(def imgs ["m_1.jpg"
+           "m_2.jpg"
+           "m_3.jpg"
+           "m_4.jpg"
+           "m_5.jpg"
+           "m_6.jpg"
+           "m_7.jpg"])
+
+(defn get-img-path []
+  (let [idx (-> (.random js/Math)
+                (* 10)
+                (mod (count imgs))
+                (js/Math.floor))]
+    (get imgs idx)))
+
 
 (defn default-view []
   [:div
@@ -78,13 +82,16 @@
                                  :rtl false
                                  :pauseOnFocusLoss false
                                  :draggable true
-                                 :pauseOnHover true})]
+                                 :pauseOnHover true})]]
+   [:div {:class "flex h-screen w-screen items-center justify-center fixed z-999"}
+    (let [enable? @(subscribe [:busy])]
+      (spinner "" enable?))]
+
+   [:div {:class "flex flex-col  w-screen items-center justify-center fixed"}
     [view-open-file]
     (let [files @(subscribe [:files])]
       (when (seq files)
-        [:div {:class "flex grow justify-center"
-               :id    "analyze-split"}
-         (analyze-select (-> files second count))]))]
-   [:div {:class "flex h-screen w-screen items-center justify-center fixed z-999"}
-    (let [enable? @(subscribe [:busy])]
-      (spinner "" enable?))]])
+        (debug "##" (count files))
+        (if (= (count files) 1)
+          [split-view/view-split]
+          [merge-view/view-merge])))]])
