@@ -3,7 +3,7 @@
             [re-frame.core :refer [subscribe dispatch]]
             ["@tauri-apps/api/dialog" :as dialog]
             ["@tauri-apps/api/fs" :as fs]
-            [app.common-element :refer [split-input-box spinner]]
+            [app.common-element :refer [split-input-box spinner input-box]]
             [app.toaster :as toaster]
             [taoensso.timbre :refer [debug]]))
 
@@ -61,6 +61,60 @@
 
 (defn show-result [])
 
+
+(defn add-user-on-click [] 
+  (dispatch [:add-split-user]))
+
+(defn add-frame-on-click [k]
+  (dispatch [:add-split-user-frame k]))
+
+(defn minus-frame-on-click [k]
+  (dispatch [:minus-split-user-frame k]))
+
+
+(defn split-user-view []
+  (let [users @(subscribe [:split-user])]
+    (when (seq users)
+      (prn "users " users)
+      (prn "frame " (-> users first second :frame))
+      [:table
+       [:thead
+        [:tr
+         [:th "user name"]
+         [:th ""]
+         [:th "frame"]]]
+       [:tbody
+        (for [[k user] users
+               :let [frames (-> user :frame)
+                     idx (count frames)]]
+            [:tr {:key (gensym)}
+             [:td [input-box idx (:user-name user) {:on-change #()}]]
+             [:td [:div {:class "flex-col"}
+                   [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                             :type "button"
+                             :on-click #(add-frame-on-click k)}
+                    [:i {:class "fas fa-plus-square"}]]
+                   [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                             :type "button"
+                             :on-click #(minus-frame-on-click k)}
+                    [:i {:class "fas fa-minus-square"}]]]]
+             [:td
+              [:table
+                 [:tbody 
+               (for [frame frames]
+                 [:tr {:key (gensym)}
+                  [:td [input-box (:idx frame) (:start frame) {:after-on-change #(dispatch [:change-frame-num :start idx (:idx frame) %])}]]
+                  [:td [input-box (:idx frame) (:end frame) {:after-on-change #(dispatch [:change-frame-num :end idx  (:idx frame) %])}]]])]]]])]])))
+
+(defn split-input-view []
+  [:div
+  [:div [split-user-view]]
+   [:button {:class "text-pink-500 background-transparent font-bold uppercase px-3 py-1 text-8xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+             :type "button"
+             :on-click add-user-on-click}
+    [:i {:class "fas fa-plus-square"}]]])
+
+
 (defn view-split []
   (dispatch [:mode :split])
   [:div {:class "mt-6 mb-6 justify-center"}
@@ -68,6 +122,7 @@
     [:i {:class "fa-solid fa-fan text-[10rem] text-green-500 animate-spin"}]]
    [analyze]
    [analyze-result]
+   [split-input-view]
    [analyze-graph]
    [validation]
    [split-config]

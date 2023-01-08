@@ -4,7 +4,7 @@
             [app.subs]
             [app.merge.view :refer [view-merge]]
             [app.split.view :refer [view-split]]
-            [app.common-element :refer [spinner]]
+            [app.common-element :refer [spinner input-box]]
             [app.toaster :as toaster]
             ["react-toastify" :refer [ToastContainer]]
             [app.tauri-cmd :as cmd]
@@ -67,55 +67,6 @@
     [view-split]
     [view-merge]))
 
-(defn add-user-on-click [] 
-  (dispatch [:add-split-user]))
-
-(defn add-frame-on-click [k]
-  (dispatch [:add-split-user-frame k]))
-
-(defn split-user-view []
-  (let [users @(subscribe [:split-user])]
-    (when (seq users)
-      (prn "users " users)
-      [:table
-       [:thead
-        [:tr
-         [:th "user name"]
-         [:th ""]
-         [:th "start"]
-         [:th "end"]]]
-       [:tbody
-        (for [[k user] users
-               :let [frames (-> user first :frame)
-                 ;;multi-frame-cnt (count frames)
-                     first-frame (first frames)
-                     the-others (rest frames)]]
-          (do
-            (prn "user" k)
-            (prn "user" user)
-            [:tr {:key (gensym)}
-             [:td (:user-name user)]
-             [:td [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                            :type "button"
-                            :on-click #(add-frame-on-click k)}
-                   [:i {:class "fas fa-plus-square"}]]]
-             [:td 1234];;(:start first-frame)]
-             [:td (:end first-frame)]]))]])))
-          ;;  (for [frame the-others]
-          ;;    [:tr {:key (gensym)}
-          ;;     [:td "xxxxx"]
-          ;;     [:td (:start frame)]
-          ;;     [:td (:end frame)]])))]])))
-
-(defn testing []
-  [:div
-  [:div [split-user-view]]
-   [:button {:class "text-pink-500 background-transparent font-bold uppercase px-3 py-1 text-8xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-             :type "button"
-             :on-click add-user-on-click}
-    [:i {:class "fas fa-plus-square"}]]])
-
-
 (defn default-view []
   [:div
    [:div {:class "flex w-screen flex-col items-center justify-center z-20 fixed"}
@@ -129,7 +80,6 @@
                                  :draggable true
                                  :pauseOnHover true})]
     [view-open-file]
-    [testing]
     (let [files @(subscribe [:files])]
       (when (seq files)
         [:div {:class "flex grow justify-center"

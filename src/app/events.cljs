@@ -139,10 +139,24 @@
 (prn "cnt " (:split-user-cnt db))
    (-> db
        (update :split-user-cnt (fnil inc 0))
-       (update :split-user assoc idx {:user-name nil :frame [{:start 0 :end 0}]})))))
+       (update :split-user assoc idx {:user-name nil :frame [{:start 0 :end 0 :idx 0}]})))))
 
 (reg-event-db
  :add-split-user-frame
  (fn [db [k v]]
    (let [frame (get-in db [:split-user v :frame])]
-   (assoc-in db [:split-user v :frame] (conj frame {:start 0 :end 0})))))
+   (assoc-in db [:split-user v :frame] (conj frame {:start 0 :end 0 :idx (-> frame count)})))))
+
+(reg-event-db
+ :minus-split-user-frame
+ (fn [db [_ v]]
+   (let [frame (get-in db [:split-user v :frame])
+         re-new (filter #(< (:idx %) (-> frame count dec)) frame)]
+     (assoc-in db [:split-user v :frame] re-new)))) 
+
+(reg-event-db
+ :change-frame-num 
+ (fn [db [_ k idx frame-idx v]]
+  ;;  (prn "$$ "v)
+  ;;  db))
+   (assoc-in db [:split-user idx :frame frame-idx k] v)))
