@@ -100,8 +100,10 @@
 
 
 (defn validation []
-  (let [result @(subscribe [:data])]
-    (validation-check (sort-result result))))
+  (let [result @(subscribe [:data])
+        without-base (filter (fn [[_ {:keys [:base-file?]}]]
+                               (not (true? base-file?))) result)]
+   (validation-check (sort-result without-base))))
 
 
 (defn merge-btn-view []
