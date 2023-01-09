@@ -8,11 +8,9 @@
    [taoensso.timbre :refer [debug]]))
 
 (defn analyze []
-  (let [file (-> @(subscribe [:files]) second)
+  (let [file @(subscribe [:files])
         color (-> @(subscribe [:color]))]
-    ;; (debug "file " file)
-    ;; (debug (seq file))
-    (when (seq file)
+   (when (seq file)
       [:div {:class "flex justify-center grow"}
        [:button {:class (str (:all color) "text-white rounded-full w-96 ")
                  :on-click #(dispatch [:split-analyze])}
@@ -20,11 +18,13 @@
         "analyze for split"]])))
 
 (defn analyze-result []
-  (let [{:keys [frame-data total-box-cnt frame-cnt-has-box first-idx last-idx] :as data} (-> @(subscribe [:data])
-                                                                                             vals
-                                                                                             first)
-        color1 "bg-green-400/30"
-        color2 "bg-green-200"]
+  (let [data @(subscribe [:data])
+        {:keys [frame-data total-box-cnt frame-cnt-has-box first-idx last-idx]}  (-> data first second)
+        color1 "bg-green-600/30"
+        color2 "bg-green-400"]
+      ;; (prn "analyze-result"  (first data))
+      ;; [:div "sdf"])))
+    (prn "3333 "(-> data first second :total-box-cnt))
     (when (seq data)
       [:table {:class "w-96
                        table-auto text-white border-collapse"}
@@ -33,7 +33,8 @@
          [:th {:class color1} "first idx"]
          [:th {:class color1} "last idx"]
          [:th {:class color1} "total box cnt"]
-         [:th {:class color1} "box cnt avg"]]
+         [:th {:class color1} "box cnt avg"]]]
+       [:tbody
         [:tr
          [:th {:class color2} first-idx]
          [:th {:class color2} last-idx]
@@ -62,8 +63,8 @@
 (defn show-result [])
 
 
-(defn add-user-on-click [] 
-  (dispatch [:add-split-user]))
+(defn add-user-on-click [k] 
+  (dispatch [:add-split-user k]))
 
 (defn add-frame-on-click [k]
   (dispatch [:add-split-user-frame k]))
@@ -86,9 +87,9 @@
        [:tbody
         (for [[k user] users
                :let [frames (-> user :frame)
-                     idx (count frames)]]
-            [:tr {:key (gensym)}
-             [:td [input-box idx (:user-name user) {:on-change #()}]]
+                     idx (-> frames count dec)]]
+            [:tr {:key (str "tr-user-name-" idx)}
+             [:td [input-box (str "user-name-" idx) (:user-name user) {:after-on-change #(dispatch [:change-split-user-name k %])}]]
              [:td [:div {:class "flex-col"}
                    [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                              :type "button"
@@ -100,58 +101,44 @@
                     [:i {:class "fas fa-minus-square"}]]]]
              [:td
               [:table
-                 [:tbody 
-               (for [frame frames]
-                 [:tr {:key (gensym)}
-                  [:td [input-box (:idx frame) (:start frame) {:after-on-change #(dispatch [:change-frame-num :start idx (:idx frame) %])}]]
-                  [:td [input-box (:idx frame) (:end frame) {:after-on-change #(dispatch [:change-frame-num :end idx  (:idx frame) %])}]]])]]]])]])))
+                 [:tbody
+                  (for [i (range (count frames))]
+                    [:tr {:key (str "frame-tr" (:idx (get frames i)))}
+                     [:td [input-box (str "frame-start-" (:idx (get frames i))) (:start (get frames i)) {:after-on-change #(dispatch [:change-frame-num k i :start %])}]]
+                     [:td [input-box (str "frame-end-" (:idx (get frames i))) (:end (get frames i)) {:after-on-change #(dispatch [:change-frame-num k i :end %])}]]])]]]])]])))
 
 (defn split-input-view []
-  [:div
-  [:div [split-user-view]]
-   [:button {:class "text-pink-500 background-transparent font-bold uppercase px-3 py-1 text-8xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-             :type "button"
-             :on-click add-user-on-click}
-    [:i {:class "fas fa-plus-square"}]]])
+  (let [data @(subscribe [:data])]
+    (when (seq data)
+      [:div
+       [:div [split-user-view]]
+       [:button {:class "text-pink-500 background-transparent font-bold uppercase px-3 py-1 text-8xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                 :type "button"
+                 :on-click add-user-on-click}
+        [:i {:class "fas fa-plus-square"}]]])))
 
 (defn file-lst []
-  (let [files @(subscribe [:files])]
+  (let [files @(subscribe [:files])
+        base-file @(subscribe [:base-file])]
     (when (seq files)
       [:div  {:class "flex justify-center"}
        [:div
-        (for [file (second files)]
-          [:div {:class "form-check"}
-           [:input {:class "form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
-                    :type "checkbox"
-                    :value ""
-                    :id (str file)}
-            [:label {:class "form-check-label inline-block text-gray-800"
-                     :for (str file)}
-             (str file)]]])]])))
-
-;; (defn file-lst []
-;;   [:div {:class "flex y-10"}]
-;;   (let [files @(subscribe [:files])]
-;;     (when (seq files)
-;;       [:div {:class "flex flex-col"}
-;;        [:span {:class "h-1 w-full bg-blue-200"}]
-;;        [:div {:class "flex-col"}
-;;         [:ul {:class "list-inside"}]
-;;         (for [file (second files)]
-;;           [:li {:key (str file)}
-;;            (str file)])]
-;;        [:span {:class "h-1 w-full bg-blue-200"}]])))
+        (for [file files]
+          [:div {:class "form-check"
+                 :key (str file)}
+            (str file)])]])))
 
 (defn view-split []
   (dispatch [:mode :split])
   [:div {:class "mt-6 mb-6 justify-center"}
-   [:div
-    [:i {:class "fa-solid fa-fan text-[10rem] text-green-500 animate-spin"}]]
+   [file-lst]
    [analyze]
    [analyze-result]
    [split-input-view]
-   [analyze-graph]
-   [validation]
-   [split-config]
-   [split-btn-view]
-   [show-result]])
+  ;;  [split-input-view]
+  ;;  [analyze-graph]
+  ;;  [validation]
+  ;;  [split-config]
+  ;;  [split-btn-view]
+  ;;  [show-result]
+   ])

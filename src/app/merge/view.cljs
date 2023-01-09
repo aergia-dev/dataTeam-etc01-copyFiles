@@ -14,7 +14,7 @@
     (when (seq files)
       [:div {:class "flex justify-center grow"}
        [:button {:class "bg-blue-500 text-white rounded-full w-96 hover:bg-blue-700"
-                 :on-click #(dispatch [:merge-analyze])}
+                 :on-click #(dispatch [:split-analyze])}
         "analyze for merge"]])))
 
 
