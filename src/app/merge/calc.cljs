@@ -1,9 +1,8 @@
 (ns app.merge.calc
- (:require [re-frame.core :refer [dispatch]]
+  (:require [re-frame.core :refer [dispatch]]
             ["@tauri-apps/api/fs" :as fs]
-            ["@tauri-apps/api/dialog" :as dialog]
             [app.toaster :as toaster]
-            [app.common.utils :as u]
+            [app.common.utils :refer [sort-result parsing-filename]]
             [taoensso.timbre :refer [debug]]))
 
 (defn count-box [data]
@@ -52,7 +51,7 @@
   (letfn [(make-frame-info [{:keys [start end]}] {:start start :end end})
           (extract-frame [v] (->> (clojure.string/split v #"_")
                                   (map #(clojure.string/split % #"-"))))]
-    (let [[_ alias frame-str] (u/parsing-filename fname)
+    (let [[_ alias frame-str] (parsing-filename fname)
           frames (reduce (fn [acc [s e]]
                            (conj acc {:start (js/parseInt s) :end (js/parseInt e)})) [] (extract-frame frame-str))]
       (map #(merge (make-frame-info %) {:filename fname :alias alias}) frames))))
@@ -105,10 +104,6 @@
     (doall (map (fn [idx file-info]
                   (analyze-file idx file-info base-filename)) (range total-cnt) files))))
 
-(defn sort-result [result]
-  (sort-by #(-> % second :start) < result))
-
-
 (defn prep-write-data [item]
   (let [data (second item)
         start (data :start)
@@ -133,48 +128,3 @@
   (let [s (apply str (reduce (fn [acc idx]
                                (conj acc (str "f" idx "\r\n"))) [] (range start  end)))]
     s))
-
-(defn merge-with-base [base-data gathered-data]
-  (prn "base " (keys base-data))
-  (prn "gathered " gathered-data))
-
-(defn gathering-data [ori-data]
-  (prn "ori-data " ori-data)
-  (loop [cur-frame 2
-         result []
-         data ori-data]
-    (if (seq data)
-      (let [m (-> data first second)
-            min-frame (->> m :frame-data first :frame)
-            max-frame (->> m :frame-data last :frame)]
-
-        (debug (-> data first first))
-        (debug "cur " cur-frame)
-        (debug "min " min-frame)
-        (debug "max " max-frame)
-        (recur (inc max-frame) (conj result (make-empty-frame-str cur-frame min-frame) (prep-data m)) (rest data)))
-      (do
-        (apply concat (conj result (make-empty-frame-str (-> ori-data last second :end inc) (-> ori-data last second :last-idx))))))))
-
-(defn save-file [path content]
-  (-> (.writeFile fs (clj->js {:contents content
-                               :path path}))
-      (.then (fn [e]
-               (dispatch [:show-result (str "output file - " path)])
-               (toaster/toast (str "saved - " path))))
-      (.catch #(debug (ex-cause %)))))
-
-
-(defn action-merge [data]
-  (let [[base-data-k base-data-v :as base-data] (->> data
-                                                     (filter #(-> % second :base-file?))
-                                                     first)
-        need-gathering (dissoc data base-data-k)]
-    (let [f (.save dialog)
-          d (-> need-gathering sort-result gathering-data (#(merge-with-base base-data-v %)))];;(apply str (gathering-data (sort-result need-gathering)))]
-      (-> f
-          (.then (fn [path]
-                   (save-file path (apply str d))
-                   (dispatch [:busy false])))
-          (.catch #(debug (ex-cause %)))))))
-

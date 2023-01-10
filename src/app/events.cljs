@@ -3,7 +3,8 @@
             [app.db :refer [default-db]]
             [app.common.utils :as u]
             [app.calc-split :refer [analyze-split]]
-            [app.merge.calc :refer [analyze-merge action-merge]]
+            [app.merge.calc :refer [analyze-merge]]
+            [app.merge.action-merge :refer [action-merge]]
             [taoensso.timbre :refer [debug]]))
 
 (reg-event-db
@@ -136,33 +137,33 @@
 ;;  (fn [db [_ v]]
 ;;    (assoc db :base-file v)))
 
-(reg-event-db 
+(reg-event-db
  :add-split-user
  (fn [db [k v]]
    (let [idx (if (nil? (:split-user-cnt db))
-             0
-             (:split-user-cnt db))]
-(prn "idx " idx)
-(prn "cnt " (:split-user-cnt db))
-   (-> db
-       (update :split-user-cnt (fnil inc 0))
-       (update :split-user assoc idx {:user-name nil :frame [{:start 0 :end 0 :idx 0}]})))))
+               0
+               (:split-user-cnt db))]
+     (prn "idx " idx)
+     (prn "cnt " (:split-user-cnt db))
+     (-> db
+         (update :split-user-cnt (fnil inc 0))
+         (update :split-user assoc idx {:user-name nil :frame [{:start 0 :end 0 :idx 0}]})))))
 
 (reg-event-db
  :add-split-user-frame
  (fn [db [k v]]
    (let [frame (get-in db [:split-user v :frame])]
-   (assoc-in db [:split-user v :frame] (conj frame {:start 0 :end 0 :idx (-> frame count)})))))
+     (assoc-in db [:split-user v :frame] (conj frame {:start 0 :end 0 :idx (-> frame count)})))))
 
 (reg-event-db
  :minus-split-user-frame
  (fn [db [_ v]]
    (let [frame (get-in db [:split-user v :frame])
          re-new (filter #(< (:idx %) (-> frame count dec)) frame)]
-     (assoc-in db [:split-user v :frame] re-new)))) 
+     (assoc-in db [:split-user v :frame] re-new))))
 
 (reg-event-db
- :change-frame-num 
+ :change-frame-num
  (fn [db [_ k idx frame-idx v]]
   ;;  (prn "$$ "v)
   ;;  db))
