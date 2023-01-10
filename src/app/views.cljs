@@ -6,12 +6,12 @@
             [app.split.view :refer [view-split]]
             ["react-toastify" :refer [ToastContainer]]
             ["@tauri-apps/api/dialog" :as dialog]
-            [cljs.core.async :refer [go]]
-            [cljs.core.async.interop :refer-macros [<p!]]
+            ;; [cljs.core.async :refer [go]]
+            ;; [cljs.core.async.interop :refer-macros [<p!]]
             [taoensso.timbre :refer [debug info error fatal]]))
 
 
-(defn base-file-checkbox-cont [cur-filename] 
+(defn base-file-checkbox-cont [cur-filename]
 ;; (debug (.stringify js/JSON checkbox nil 4))
 ;; (debug (.keys js/Object checkbox))
 ;; (debug (.keys js/Object (.-target checkbox)))
@@ -30,10 +30,10 @@
   [:div {:class "flex v-screen flex-col space-y-4 justify-center"}
    [:button {:class "bg-gray-500 hover:bg-gray-700 text-white font-bold rounded-full w-20"
              :on-click (fn [_]
-                          (let [f (.open dialog (clj->js {:multiple true}))]
-                            (dispatch [:clear-data nil])
-                            (-> f
-                                (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
+                         (let [f (.open dialog (clj->js {:multiple true}))]
+                           (dispatch [:clear-data nil])
+                           (-> f
+                               (.then (fn [f] (dispatch-sync [:files (js->clj f)])))
                                (.catch #(js/alert "file open error: " %)))))}
     "open"]])
 

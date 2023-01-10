@@ -2,9 +2,10 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [app.db :refer [default-db]]
             [app.common.utils :as u]
-            [app.calc-split :refer [analyze-split]]
+            [app.split.calc :refer [analyze-split]]
             [app.merge.calc :refer [analyze-merge]]
             [app.merge.action-merge :refer [action-merge]]
+            ;; [app.split.calc :refer [action-split]]
             [taoensso.timbre :refer [debug]]))
 
 (reg-event-db
@@ -132,44 +133,68 @@
                          :all " bg-blue-200 hover:bg-blue-400 "})]
      (assoc db  k v :color color))))
 
-;; (reg-event-db 
-;;  :base-file
-;;  (fn [db [_ v]]
-;;    (assoc db :base-file v)))
-
 (reg-event-db
  :add-split-user
  (fn [db [k v]]
    (let [idx (if (nil? (:split-user-cnt db))
                0
                (:split-user-cnt db))]
-     (prn "idx " idx)
-     (prn "cnt " (:split-user-cnt db))
      (-> db
          (update :split-user-cnt (fnil inc 0))
-         (update :split-user assoc idx {:user-name nil :frame [{:start 0 :end 0 :idx 0}]})))))
+         (update :split-user assoc idx {:user-name nil :frame [{:start "" :end "" :idx 0}]})))))
 
 (reg-event-db
  :add-split-user-frame
  (fn [db [k v]]
    (let [frame (get-in db [:split-user v :frame])]
-     (assoc-in db [:split-user v :frame] (conj frame {:start 0 :end 0 :idx (-> frame count)})))))
+     (assoc-in db [:split-user v :frame] (conj frame {:start "" :end "" :idx (-> frame count)})))))
 
 (reg-event-db
  :minus-split-user-frame
  (fn [db [_ v]]
    (let [frame (get-in db [:split-user v :frame])
-         re-new (filter #(< (:idx %) (-> frame count dec)) frame)]
-     (assoc-in db [:split-user v :frame] re-new))))
-
-(reg-event-db
- :change-frame-num
- (fn [db [_ k idx frame-idx v]]
-  ;;  (prn "$$ "v)
-  ;;  db))
-   (assoc-in db [:split-user idx :frame frame-idx k] v)))
+         re-new (into [] (filter #(< (:idx %) (-> frame count dec)) frame))]
+     (prn "re -new " re-new)
+     (if (= (count frame) 1)
+       db
+       (assoc-in db [:split-user v :frame] re-new)))))
 
 (reg-event-db
  :base-file
  (fn [db [k v]]
    (assoc db k v)))
+
+(reg-event-fx
+ :split-analyze
+ (fn [{db :db} _]
+   {:dispatch ^:flush-dom [:action-split-analyze]
+    :db (assoc db :busy true)}))
+
+
+(reg-event-db
+ :action-split-analyze
+ (fn [db  _]
+   (analyze-split (-> db :files first))
+   db))
+
+(reg-event-db
+ :change-split-user-name
+ (fn [db [_ k v]]
+   (assoc-in db [:split-user k :user-name] v)))
+
+(reg-event-db
+ :change-frame-num
+ (fn [db [_ k idx frame-k v]]
+   (assoc-in db [:split-user k :frame idx frame-k] v)))
+
+(reg-event-db
+ :action-split
+ (fn [db _]
+  ;;  (action-split (-> db :data))
+   db))
+
+(reg-event-db
+ :req-split
+ (fn [{db :db} _]
+   {:dispatch ^:flush-dom [:action-split]
+    :db (assoc db :busy true)}))
