@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [app.db :refer [default-db]]
             [app.common.utils :as u]
-            [app.split.calc :refer [analyze-split]]
+            [app.split.calc :refer [analyze-split action-split]]
             [app.merge.calc :refer [analyze-merge]]
             [app.merge.action-merge :refer [action-merge]]
             ;; [app.split.calc :refer [action-split]]
@@ -82,18 +82,18 @@
 ;;      {:dispatch [:add-data [:data data]]
 ;;       :db (assoc db :busy false)})))
 
-(reg-event-db
- :action-split
- (fn [db  _]
-   (debug "##################")
-   (analyze-split (-> db :files second first))
-   db))
+;; (reg-event-db
+;;  :action-split
+;;  (fn [db  _]
+;;    (debug "##################")
+;;    (analyze-split (-> db :files second first))
+;;    db))
 
-(reg-event-fx
- :split-analyze
- (fn [{db :db} _]
-   {:dispatch ^:flush-dom [:action-split]
-    :db (assoc db :busy true)}))
+;; (reg-event-fx
+;;  :split-analyze
+;;  (fn [{db :db} _]
+;;    {:dispatch ^:flush-dom [:action-split]
+;;     :db (assoc db :busy true)}))
 
 (reg-event-fx
  :merge-analyze
@@ -188,13 +188,16 @@
    (assoc-in db [:split-user k :frame idx frame-k] v)))
 
 (reg-event-db
- :action-split
- (fn [db _]
-  ;;  (action-split (-> db :data))
-   db))
-
-(reg-event-db
  :req-split
  (fn [{db :db} _]
+   (prn "req-split")
    {:dispatch ^:flush-dom [:action-split]
     :db (assoc db :busy true)}))
+
+(reg-event-db
+ :action-split
+ (fn [db _]
+   (prn "action-split ")
+  ;;  (action-split (-> db :data) (:split-user db))
+   db))
+

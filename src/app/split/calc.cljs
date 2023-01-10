@@ -1,6 +1,8 @@
 (ns app.split.calc
   (:require [re-frame.core :refer [dispatch]]
             ["@tauri-apps/api/fs" :as fs]
+            ["@tauri-apps/api/dialog" :as dialog]
+            [app.toaster :as toaster]
             [taoensso.timbre :refer [debug]]))
 
 (defn count-box [data]
@@ -49,4 +51,35 @@
                  (dispatch [:busy false])
                  (debug "analyze for split exceptoin " (ex-cause %))))))
 
-(defn action-spilt [])
+
+(defn make-data [[k {:keys [:user-name :frames]}] [_ {:keys [:frame-data]}]]
+  (reduce (fn [acc {:keys [:start :end]}]
+            (let [range-data (filter #(and (<= start (:frame %))
+                                           (>= end (:frame %))) frame-data)]
+              (conj acc range-data))) [] frames))
+
+(defn save-file [path content]
+  (-> (.writeFile fs (clj->js {:contents content
+                               :path path}))
+      (.then (fn [e]
+               (dispatch [:show-result (str "output file - " path)])
+               (toaster/toast (str "saved - " path))))
+      (.catch #(debug (ex-cause %)))))
+
+
+(defn write-split [dir filename contents]
+(prn "write dir " dir)
+  (-> filename
+      (.then (fn [path]
+               (save-file path (apply str contents))
+               (dispatch [:busy false])))))
+
+
+;;{0 {:user-name "abc", :frame [{:start "1", :end "100", :idx 0}]}
+;; 1 {:user-name "", :frame [{:start "1", :end "100", :idx 0}]}}
+(defn action-split [data users]
+  (let [dir (.save dialog (clj->js {:directory true}))]
+(prn "dir " dir)))
+    ;; (map (fn [user]
+          ;;  (->> (make-data user data)
+                ;; (write-split dir (:user-name user)))) users)))

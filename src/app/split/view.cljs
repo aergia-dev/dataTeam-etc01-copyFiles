@@ -1,5 +1,6 @@
 (ns app.split.view
-  (:require [re-frame.core :refer [subscribe dispatch]]
+  (:require [reagent.core :as r]
+            [re-frame.core :refer [subscribe dispatch]]
             [app.common-element :refer [input-box]]
             [taoensso.timbre :refer [debug]]))
 
@@ -14,22 +15,21 @@
         "analyze for split"]])))
 
 (defn analyze-result []
-
   (let [data @(subscribe [:data])
-        {:keys [frame-data total-box-cnt frame-cnt-has-box first-idx last-idx]}  (-> data first second)
-        color1 "bg-green-200/30"
+        {:keys [_ total-box-cnt frame-cnt-has-box first-idx last-idx]}  (-> data first second)
+        color1 "bg-green-400/30"
         color2 ""]
     (when (seq data)
-      [:div
-       [:table {:class "table-auto text-white border-collapse"}
-        [:thead
+      [:div {:class "w-window justify-center mt-8"}
+       [:table {:class "text-white border-collapse min-w-full"}
+        [:thead {:class "text-white border-b"}
          [:tr {:class color1}
           [:th {:class color1} "first idx"]
           [:th {:class color1} "last idx"]
           [:th {:class color1} "total box cnt"]
           [:th {:class color1} "box cnt avg"]]]
-        [:tbody
-         [:tr
+        [:tbody {:class "text-black"}
+         [:tr {:class "border-b"}
           [:th {:class color2} first-idx]
           [:th {:class color2} last-idx]
           [:th {:class color2} total-box-cnt]
@@ -71,77 +71,42 @@
     (when (seq users)
       (prn "users " users)
       (prn "frame " (-> users first second :frame))
-      [:table
-       [:thead
-        [:tr
-         [:th "user name"]
-         [:th ""]
-         [:th "frame"]]]
-       [:tbody
-        (for [[k user] users
-              :let [frames (-> user :frame)
-                    idx (-> frames count)]]
-          [:tr {:key (str "tr-user-name-" idx)}
-           [:td [input-box (str "user-name-" idx) (:user-name user) {:after-on-change #(do
-                                                                                         (prn "change name: " %)
-                                                                                         (dispatch [:change-split-user-name k %]))}]]
-           [:td [:div {:class "flex-col"}
-                 [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                           :type "button"
-                           :on-click #(add-frame-on-click k)}
-                  [:i {:class "fas fa-plus-square"}]]
-                 [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                           :type "button"
-                           :on-click #(minus-frame-on-click k)}
-                  [:i {:class "fas fa-minus-square"}]]]]
-           [:td
-            [:table
-             [:tbody
-              (for [i (range (count frames))]
-                [:tr {:key (str "frame-tr-" k "-" (:idx (get frames i)))}
+      [:div {:class "mt-10"}
+       [:table {:class "min-w-full"}
+        [:thead {:class "border-b"}
+         [:tr
+          [:th "user name"]
+          [:th ""]
+          [:th "frame"]]]
+        [:tbody
+         (for [[k user] users
+               :let [frames (-> user :frame)
+                     idx (-> frames count)]]
+           [:tr {:key (str "tr-user-name-" idx)}
+            [:td [input-box (str "user-name-" idx) (:user-name user) {:after-on-change #(do
+                                                                                          (prn "change name: " %)
+                                                                                          (dispatch [:change-split-user-name k %]))}]]
+            [:td [:div {:class "flex-col"}
+                  [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                            :type "button"
+                            :on-click #(add-frame-on-click k)}
+                   [:i {:class "fas fa-plus-square"}]]
+                  [:button {:class "text-green-500 background-transparent font-bold uppercase px-3 py-1 text-4xl outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                            :type "button"
+                            :on-click #(minus-frame-on-click k)}
+                   [:i {:class "fas fa-minus-square"}]]]]
+            [:td
+             [:table  {:class "min-w-full"}
+              [:tbody
+               (for [i (range (count frames))]
+                 [:tr {:class "border-b"
+                       :key (str "frame-tr-" k "-" (:idx (get frames i)))}
 
-                 (prn "cnt : " (count frames))
-                 (prn (str "frames: " frames  " frame-tr-"  k "-" (:idx (get frames i))))
+                  (prn "cnt : " (count frames))
+                  (prn (str "frames: " frames  " frame-tr-"  k "-" (:idx (get frames i))))
 
-                ;;  [:td [input-box (str "frame-start-" k "-" (:idx (get frames i))) (:start (get frames i)) {:after-on-change #(dispatch [:change-frame-num k i :start %])}]]
-                ;;  [:td [input-box (str "frame-end-" k "-" (:idx (get frames i))) (:end (get frames i)) {:after-on-change #(dispatch [:change-frame-num k i :end %])}]]])]]]])]])))
-                 [:td
-                  (let [val (r/atom (:start (get frames i)))
-                        id (str "frame-start-" k "-" (:idx (get frames i)))]
-                    (fn []
-                      [:div {:class "flex justify-center mt-3"
-                             :key (str "div1" id)}
-                       [:div {:class "mb-3 w-32 ml-2 mr-2 "
-                              :key (str "div2" id)}
-                        [:input {:type "text"
-                                 :class "form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                                 :id id
-                                 :key id
-                                 :on-change #(let [new-v (-> % .-target .-value)]
-                                               (prn "changed val " new-v)
-                                               (reset! val new-v)
-                                               (dispatch [:change-frame-num k i :start new-v]))
-                                 :value (or @val "")}]]]))]
-                 [:td
-                  (let [val (r/atom (:start (get frames i)))
-                        id (str "frame-end-" k "-" (:idx (get frames i)))]
-                    (fn []
-                      [:div {:class "flex justify-center mt-3"
-                             :key (str "div1" id)}
-                       [:div {:class "mb-3 w-32 ml-2 mr-2 "
-                              :key (str "div2" id)}
-                        [:input {:type "text"
-                                 :class "form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                                 :id id
-                                 :key id
-                                 :on-change #(let [new-v (-> % .-target .-value)]
-                                               (prn "changed val " new-v)
-                                               (reset! val new-v)
-                                               (dispatch [:change-frame-num k i :end new-v]))
-                                 :value (or @val "")}]]]))]])]]]])]])))
-
-
-
+                 [:td [input-box (str "frame-start-" k "-" (:idx (get frames i))) (:start (get frames i)) {:after-on-change #(dispatch [:change-frame-num k i :start %])}]]
+                 [:td [input-box (str "frame-end-" k "-" (:idx (get frames i))) (:end (get frames i)) {:after-on-change #(dispatch [:change-frame-num k i :end %])}]]])]]]])]]])))
 
 (defn split-input-view []
   (let [data @(subscribe [:data])]
@@ -166,8 +131,8 @@
 
 (defn save-into-file []
   [:div {:class "flex justify-center grow"}
-   [:button {:class "text-white rounded-full w-96"
-             :on-click #(dispatch [:req-split])} "save"]])
+   [:button {:class "bg-green-500 text-white rounded-full w-96"
+             :on-click #(dispatch [:req-split])} "save it"]])
 
 (defn view-split []
   (dispatch [:mode :split])
